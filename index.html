@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SUS QUEST — Território Vivo 3.1</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+
+:root{
+  --navy:#07162b;
+  --blue:#0b4f86;
+  --cyan:#29c7e8;
+  --green:#36c979;
+  --yellow:#ffd84d;
+  --red:#ff5b62;
+  --white:#f7fbff;
+}
+
+*{box-sizing:border-box}
+html,body{
+  width:100%;height:100%;margin:0;overflow:hidden;
+  background:#020914;color:var(--white);
+}
+body{
+  font-family:'VT323',monospace;
+  display:flex;align-items:center;justify-content:center;
+  touch-action:manipulation;
+}
+
+button{font-family:inherit}
+
+#game{
+  width:min(1100px,100vw);
+  height:min(700px,100vh);
+  position:relative;
+  overflow:hidden;
+  background:#06152a;
+  border:4px solid var(--yellow);
+  box-shadow:0 0 0 4px #08233d,0 0 30px #000;
+}
+
+/* TELAS */
+.screen{
+  position:absolute;inset:0;
+  display:none;
+  overflow:hidden;
+}
+.screen.active{display:block}
+
+#menu{
+  background:
+    linear-gradient(#06152acc,#06152add),
+    url('ubs.jpg') center/cover;
+}
+.menu-box{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(650px,90%);
+  padding:28px;
+  text-align:center;
+  background:#06152af2;
+  border:4px solid var(--yellow);
+  box-shadow:10px 10px 0 #0008;
+}
+.logo{
+  font-family:'Press Start 2P';
+  color:var(--yellow);
+  font-size:clamp(24px,4vw,46px);
+  line-height:1.25;
+  text-shadow:4px 4px #0b4f86;
+}
+.subtitle{font-size:28px;color:#8cecff;margin:15px 0}
+.menu-btn{
+  display:block;width:100%;margin:10px 0;padding:13px;
+  border:3px solid #7de8ff;background:#0b4f86;color:white;
+  font-size:24px;cursor:pointer;
+}
+.menu-btn:hover,.menu-btn:active{background:#1678bd}
+.small{font-size:20px;color:#b8cce0;margin-top:16px}
+
+#intro{
+  background:linear-gradient(#06152af2,#06152af2),url('ubs.jpg') center/cover;
+}
+.intro-box{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:min(800px,92%);padding:25px;background:#07162bf2;
+  border:4px solid var(--cyan);
+}
+.intro-title{font-family:'Press Start 2P';font-size:clamp(18px,3vw,30px);color:var(--yellow);line-height:1.5}
+.dialogue{font-size:27px;line-height:1.15;margin:18px 0}
+.objectives{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  font-size:21px;
+}
+.objectives div{padding:8px;background:#0b2946;border-left:4px solid var(--green)}
+
+#worldScreen{background:#020914}
+
+/* HUD */
+#hud{
+  position:absolute;z-index:30;left:0;right:0;top:0;
+  height:78px;padding:8px 10px;
+  display:flex;align-items:center;gap:8px;
+  background:linear-gradient(#06152af5,#06152ad9);
+  border-bottom:3px solid var(--yellow);
+}
+.hud-logo{
+  font-family:'Press Start 2P';font-size:16px;color:var(--yellow);
+  white-space:nowrap;
+}
+.stats{
+  display:flex;gap:5px;flex:1;justify-content:center;
+  overflow:hidden;
+}
+.stat{
+  min-width:92px;padding:6px 8px;background:#0b2946;
+  border:2px solid #356b92;text-align:center;font-size:19px;
+}
+.stat b{display:block;font-family:'Press Start 2P';font-size:11px;margin-bottom:3px}
+.hud-controls{display:flex;gap:5px}
+.icon-btn{
+  border:2px solid #6edfff;background:#0b4f86;color:white;
+  width:38px;height:38px;font-size:20px;cursor:pointer;
+}
+
+/* MAPA */
+#mapViewport{
+  position:absolute;left:0;right:0;top:78px;bottom:0;
+  overflow:hidden;background:#193f2c;
+}
+#world{
+  position:absolute;left:0;top:0;width:100%;height:100%;
+  transform-origin:center center;
+  transition:transform .2s ease;
+}
+#mapImage{
+  width:100%;height:100%;display:block;
+  object-fit:cover;user-select:none;pointer-events:none;
+  image-rendering:auto;
+}
+.map-vignette{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 45%,#0008 100%);
+}
+.crt{
+  position:absolute;inset:0;pointer-events:none;z-index:50;
+  background:repeating-linear-gradient(0deg,#0000 0,#0000 3px,#0000000c 4px);
+}
+
+#phaseBanner{
+  position:absolute;z-index:35;left:15px;top:15px;
+  max-width:55%;padding:10px 14px;
+  background:#06152ae8;border:3px solid var(--cyan);
+  box-shadow:4px 4px #0008;
+}
+#phaseTitle{font-family:'Press Start 2P';font-size:13px;color:var(--yellow);line-height:1.5}
+#missionText{font-size:21px;line-height:1.05;margin-top:4px}
+
+#progress{
+  position:absolute;z-index:35;right:15px;top:15px;
+  padding:8px 12px;background:#06152ae8;border:3px solid var(--green);
+  font-size:21px;
+}
+
+#message{
+  position:absolute;z-index:60;left:50%;bottom:18px;
+  transform:translateX(-50%) translateY(120%);
+  width:min(700px,88%);padding:12px 16px;
+  background:#06152af5;border:3px solid var(--yellow);
+  box-shadow:6px 6px #0008;
+  transition:.25s;pointer-events:none;text-align:center;
+  font-size:23px;line-height:1.05;
+}
+#message.show{transform:translateX(-50%) translateY(0)}
+
+#objectivePanel{
+  position:absolute;z-index:35;left:15px;bottom:15px;
+  width:min(370px,44%);padding:10px 13px;
+  background:#06152ae8;border:3px solid #9ee9ff;
+  font-size:21px;line-height:1.05;
+}
+#objectivePanel b{color:var(--yellow)}
+
+#zoomPanel{
+  position:absolute;z-index:40;right:15px;bottom:15px;
+  display:flex;gap:5px;
+}
+.zoomBtn{
+  width:42px;height:42px;border:3px solid var(--cyan);
+  background:#06152af0;color:white;font-size:25px;cursor:pointer;
+}
+
+/* HOTSPOTS */
+.hotspot{
+  position:absolute;z-index:25;
+  transform:translate(-50%,-50%);
+  border:3px solid white;border-radius:12px;
+  background:#0b4f86ee;color:white;
+  padding:6px 9px;min-width:72px;
+  font-size:19px;line-height:.95;
+  cursor:pointer;text-align:center;
+  box-shadow:0 4px 0 #0008;
+  transition:.15s;
+}
+.hotspot:hover,.hotspot:active{
+  transform:translate(-50%,-50%) scale(1.08);
+  border-color:var(--yellow);
+}
+.hotspot.done{filter:grayscale(.5);opacity:.7;border-color:var(--green)}
+.hotspot.locked{opacity:.25;cursor:not-allowed;filter:grayscale(1)}
+.hotspot.target{
+  animation:pulse 1s infinite;
+  border-color:var(--yellow);
+}
+.hotspot.npc{
+  background:#772a72ee;border-color:#ff9ee8;
+}
+.hotspot.risk{
+  background:#7b3b20ee;border-color:#ffbf6d;
+}
+.hotspot.boss{
+  background:#8b1421ee;border-color:#ff5b62;
+  animation:pulseBoss .65s infinite;
+}
+.hotspot .check{color:#6dff9e}
+@keyframes pulse{
+  50%{box-shadow:0 0 0 7px #ffd84d44,0 4px 0 #0008}
+}
+@keyframes pulseBoss{
+  50%{box-shadow:0 0 0 10px #ff3b4544,0 4px 0 #0008}
+}
+
+/* posições do mapa */
+.hs-ubs{left:56%;top:28%}
+.hs-escola{left:29%;top:22%}
+.hs-comunidade{left:13%;top:44%}
+.hs-praca{left:15%;top:66%}
+.hs-agua{left:76%;top:25%}
+.hs-lixo{left:47%;top:82%}
+.hs-industria{left:91%;top:48%}
+.hs-mata{left:80%;top:88%}
+.hs-maria{left:39%;top:48%}
+.hs-juliana{left:50%;top:56%}
+.hs-jorge{left:64%;top:56%}
+.hs-dentista{left:70%;top:40%}
+.hs-casos{left:54%;top:65%}
+.hs-notificacao{left:45%;top:57%}
+.hs-reservatorio{left:76%;top:25%}
+.hs-residuos{left:47%;top:82%}
+.hs-industria2{left:91%;top:48%}
+.hs-rio{left:73%;top:60%}
+
+/* MODAL */
+#modal{
+  position:absolute;z-index:100;inset:0;background:#0009;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+#modal.show{display:flex}
+.modal-box{
+  width:min(650px,94%);max-height:80%;overflow:auto;
+  background:#07162b;border:4px solid var(--cyan);
+  box-shadow:8px 8px #000;
+  padding:20px;
+}
+.modal-title{font-family:'Press Start 2P';font-size:18px;color:var(--yellow);line-height:1.5}
+.modal-text{font-size:25px;line-height:1.1;margin:15px 0}
+.modal-actions{display:flex;gap:8px;flex-wrap:wrap}
+.action{
+  flex:1;min-width:150px;padding:11px;border:3px solid var(--green);
+  background:#0b4f86;color:#fff;font-size:22px;cursor:pointer;
+}
+.action.secondary{border-color:#7892aa;background:#17324b}
+.action.danger{border-color:var(--red);background:#6d1c28}
+
+/* mobile */
+@media(max-width:700px){
+  #game{border-width:3px}
+  #hud{height:61px;padding:5px}
+  .hud-logo{font-size:9px}
+  .stat{min-width:61px;padding:4px;font-size:14px}
+  .stat b{font-size:8px}
+  .icon-btn{width:31px;height:31px;font-size:16px}
+  #mapViewport{top:61px}
+  #phaseBanner{left:7px;top:7px;padding:6px 8px;max-width:67%}
+  #phaseTitle{font-size:9px}
+  #missionText{font-size:16px}
+  #progress{right:7px;top:7px;padding:5px 7px;font-size:16px}
+  #objectivePanel{left:7px;bottom:7px;width:65%;font-size:16px;padding:7px}
+  #zoomPanel{right:7px;bottom:7px}
+  .zoomBtn{width:34px;height:34px;font-size:20px}
+  .hotspot{font-size:14px;min-width:53px;padding:5px 6px;border-width:2px}
+  .dialogue{font-size:22px}
+  .objectives{grid-template-columns:1fr}
+  .intro-box{padding:17px}
+  .menu-box{padding:18px}
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+
+  <section id="menu" class="screen active">
+    <div class="menu-box">
+      <div class="logo">SUS QUEST</div>
+      <div class="subtitle">TERRITÓRIO VIVO</div>
+      <button class="menu-btn" onclick="newGame()">▶ NOVO JOGO</button>
+      <button class="menu-btn" onclick="continueGame()">↻ CONTINUAR</button>
+      <button class="menu-btn" onclick="howToPlay()">? COMO JOGAR</button>
+      <div class="small">Uma aventura pela territorialização na Atenção Primária</div>
+    </div>
+  </section>
+
+  <section id="intro" class="screen">
+    <div class="intro-box">
+      <div class="intro-title">MISSÃO: DESVENDAR O TERRITÓRIO</div>
+      <div class="dialogue">
+        A UBS Bairro Esperança recebeu relatos de diarreia entre crianças.
+        Antes de agir, sua equipe precisa conhecer o território, ouvir a comunidade
+        e investigar os riscos.
+      </div>
+      <div class="objectives">
+        <div>🗺️ Conhecer o território</div>
+        <div>👥 Ouvir a comunidade</div>
+        <div>🔎 Investigar riscos</div>
+        <div>🧠 Planejar a resposta</div>
+      </div>
+      <br>
+      <button class="menu-btn" onclick="beginMission()">INICIAR MISSÃO →</button>
+    </div>
+  </section>
+
+  <section id="worldScreen" class="screen">
+    <div id="hud">
+      <div class="hud-logo">SUS QUEST</div>
+      <div class="stats">
+        <div class="stat"><b>❤️ COMUNIDADE</b><span id="hp">100</span></div>
+        <div class="stat"><b>🔎 INFO</b><span id="info">0</span></div>
+        <div class="stat"><b>🤝 VÍNCULO</b><span id="eng">50</span></div>
+        <div class="stat"><b>⭐ XP</b><span id="xp">0</span></div>
+        <div class="stat"><b>⏱ TEMPO</b><span id="time">100</span></div>
+      </div>
+      <div class="hud-controls">
+        <button class="icon-btn" onclick="zoom(-.1)">−</button>
+        <button class="icon-btn" onclick="zoom(.1)">+</button>
+        <button class="icon-btn" onclick="saveGame()">💾</button>
+      </div>
+    </div>
+
+    <div id="mapViewport">
+      <div id="world">
+        <img id="mapImage" src="mapa.png" alt="Mapa do Bairro Esperança">
+        <div class="map-vignette"></div>
+
+        <!-- FASE 1 -->
+        <button class="hotspot hs-ubs" data-phase="1" onclick="visit('ubs')">🏥<br>UBS</button>
+        <button class="hotspot hs-escola" data-phase="1" onclick="visit('escola')">🏫<br>ESCOLA</button>
+        <button class="hotspot hs-comunidade" data-phase="1" onclick="visit('comunidade')">👥<br>COMUNIDADE</button>
+        <button class="hotspot hs-praca" data-phase="1" onclick="visit('praca')">🌳<br>PRAÇA</button>
+        <button class="hotspot hs-agua" data-phase="1" onclick="visit('agua')">💧<br>ÁGUA</button>
+        <button class="hotspot hs-lixo" data-phase="1" onclick="visit('lixo')">🗑️<br>LIXO</button>
+        <button class="hotspot hs-industria" data-phase="1" onclick="visit('industria')">🏭<br>INDÚSTRIA</button>
+        <button class="hotspot hs-mata" data-phase="1" onclick="visit('mata')">🌿<br>ÁREA VERDE</button>
+
+        <!-- FASE 2 -->
+        <button class="hotspot npc hs-maria" data-phase="2" onclick="talk('maria')">👩<br>DONA MARIA</button>
+        <button class="hotspot npc hs-juliana" data-phase="2" onclick="talk('juliana')">👩🏽‍⚕️<br>JULIANA ACS</button>
+        <button class="hotspot npc hs-jorge" data-phase="2" onclick="talk('jorge')">👨<br>SEU JORGE</button>
+        <button class="hotspot npc hs-dentista" data-phase="2" onclick="talk('dentista')">🦷<br>DENTISTA</button>
+
+        <!-- FASE 3 -->
+        <button class="hotspot risk hs-reservatorio" data-phase="3" onclick="investigate('reservatorio')">💧<br>RESERVATÓRIO</button>
+        <button class="hotspot risk hs-casos" data-phase="3" onclick="investigate('casos')">🤒<br>CASOS</button>
+        <button class="hotspot risk hs-residuos" data-phase="3" onclick="investigate('residuos')">🗑️<br>RESÍDUOS</button>
+        <button class="hotspot risk hs-industria2" data-phase="3" onclick="investigate('industria')">🏭<br>INDÚSTRIA</button>
+        <button class="hotspot risk hs-rio" data-phase="3" onclick="investigate('rio')">💧<br>CURSO D'ÁGUA</button>
+        <button class="hotspot risk hs-notificacao" data-phase="3" onclick="investigate('notificacao')">📋<br>NOTIFICAÇÃO</button>
+
+        <!-- FASE 4 -->
+        <button class="hotspot target hs-ubs" data-phase="4" onclick="decision('ubs')">🧠<br>PLANO NA UBS</button>
+        <button class="hotspot target hs-juliana" data-phase="4" onclick="decision('acs')">🤝<br>ACS</button>
+        <button class="hotspot target hs-agua" data-phase="4" onclick="decision('agua')">💧<br>ÁGUA</button>
+        <button class="hotspot target hs-industria" data-phase="4" onclick="decision('vigilancia')">🛡️<br>VIGILÂNCIA</button>
+
+        <!-- FASE 5 -->
+        <button class="hotspot boss hs-rio" data-phase="5" onclick="bossAction('acs')">👹<br>SURTO</button>
+        <button class="hotspot target hs-ubs" data-phase="5" onclick="bossAction('cuidado')">🩺<br>CUIDAR</button>
+        <button class="hotspot target hs-agua" data-phase="5" onclick="bossAction('agua')">💧<br>ÁGUA</button>
+        <button class="hotspot target hs-industria" data-phase="5" onclick="bossAction('vigilancia')">🛡️<br>VIGILÂNCIA</button>
+      </div>
+      <div class="crt"></div>
+    </div>
+
+    <div id="phaseBanner">
+      <div id="phaseTitle">FASE 1</div>
+      <div id="missionText">Conheça o território</div>
+    </div>
+    <div id="progress">0 / 5</div>
+
+    <div id="objectivePanel">
+      <b>OBJETIVO</b><br>
+      <span id="objectiveText">Clique nos locais do mapa para descobrir informações.</span>
+    </div>
+
+    <div id="zoomPanel">
+      <button class="zoomBtn" onclick="zoom(-.1)">−</button>
+      <button class="zoomBtn" onclick="zoom(.1)">+</button>
+      <button class="zoomBtn" onclick="resetZoom()">⛶</button>
+    </div>
+
+    <div id="message"></div>
+
+    <div id="modal">
+      <div class="modal-box">
+        <div id="modalTitle" class="modal-title"></div>
+        <div id="modalText" class="modal-text"></div>
+        <div id="modalActions" class="modal-actions"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+const SAVE_KEY = 'sus_quest_territorio_v3';
+
+let state = {
+  phase: 1,
+  xp: 0,
+  hp: 100,
+  info: 0,
+  eng: 50,
+  time: 100,
+  zoom: 1,
+  explored: new Set(),
+  talked: new Set(),
+  evidence: new Set(),
+  decisions: new Set(),
+  quizPhase: 0,
+  quizIndex: 0,
+  quizScore: 0,
+  bossIndex: 0,
+  bossDefeated: false,
+  quizPhase: 0,
+  quizIndex: 0,
+  quizScore: 0
+};
+
+const phaseData = {
+  1:{
+    title:'FASE 1 — CONHECER O TERRITÓRIO',
+    mission:'Explore o mapa e descubra como o território está organizado.',
+    objective:'Clique em pelo menos 5 pontos do mapa. Observe equipamentos, ambiente e população.'
+  },
+  2:{
+    title:'FASE 2 — OUVIR A COMUNIDADE',
+    mission:'Os moradores são parte do território-processo.',
+    objective:'Converse com os personagens espalhados pelo bairro e reúna informações.'
+  },
+  3:{
+    title:'FASE 3 — INVESTIGAR RISCOS',
+    mission:'Agora transforme relatos em evidências.',
+    objective:'Investigue água, resíduos, casos, indústria, curso d’água e notificação.'
+  },
+  4:{
+    title:'FASE 4 — PLANEJAR A RESPOSTA',
+    mission:'Use as informações para decidir onde a equipe deve agir.',
+    objective:'Clique nos pontos do mapa e escolha a conduta adequada para cada situação.'
+  },
+  5:{
+    title:'FASE 5 — ENFRENTAR O SURTO',
+    mission:'O território entrou em estado de emergência.',
+    objective:'Execute a sequência correta de ações para proteger a comunidade.'
+  },
+  6:{
+    title:'FASE 6 — TERRITÓRIO PROTEGIDO',
+    mission:'Você integrou território, comunidade e vigilância.',
+    objective:'Missão concluída.'
+  }
+};
+
+const locations = {
+  ubs:['UBS','A unidade conhece parte da população adscrita e coordena o cuidado.','Equipamento de saúde identificado.','info',12,8],
+  escola:['ESCOLA','A escola é um equipamento social importante para compreender problemas que atingem crianças e famílias.','Equipamento social identificado.','info',8,7],
+  comunidade:['COMUNIDADE','O território não é apenas um espaço físico: é formado pelas relações, modos de vida e necessidades das pessoas.','Território-processo reconhecido.','eng',7,6],
+  praca:['PRAÇA','Espaços de convivência ajudam a compreender hábitos, circulação e relações sociais do bairro.','Espaço comunitário identificado.','info',5,5],
+  agua:['ABASTECIMENTO DE ÁGUA','Moradores relatam alteração no gosto da água. Uma fonte comum pode estar relacionada aos casos.','Relato ambiental importante.','info',15,8],
+  lixo:['PONTO DE RESÍDUOS','Acúmulo de lixo próximo ao curso d’água representa um possível risco ambiental que precisa ser investigado.','Risco ambiental localizado.','info',10,7],
+  industria:['ÁREA INDUSTRIAL','Existe atividade industrial próxima ao curso d’água. A informação é um sinal para investigação, não uma conclusão.','Possível fonte de exposição identificada.','info',9,6],
+  mata:['ÁREA VERDE','A área verde faz parte do território e ajuda a compreender ocupação, circulação e ambiente.','Área ambiental registrada.','info',4,4]
+};
+
+const npcs = {
+  maria:{
+    title:'DONA MARIA',
+    text:'“Meus netos começaram com diarreia. E faz uns dias que a água está com um gosto estranho.”',
+    extra:'Relato comunitário: alteração da água + casos em crianças.',
+    xp:12,info:15,eng:10
+  },
+  juliana:{
+    title:'JULIANA — ACS',
+    text:'“Eu posso fazer busca ativa, conversar com as famílias e ajudar a identificar quem está faltando ao acompanhamento.”',
+    extra:'A ACS aproxima equipe, famílias e território.',
+    xp:12,info:10,eng:12
+  },
+  jorge:{
+    title:'SEU JORGE',
+    text:'“Na Rua 4 teve gente com dor de barriga também. O pessoal está preocupado com a água.”',
+    extra:'Novo agrupamento de casos identificado.',
+    xp:10,info:13,eng:7
+  },
+  dentista:{
+    title:'DENTISTA',
+    text:'“Na escola comentaram que algumas crianças faltaram por causa de sintomas gastrointestinais.”',
+    extra:'Equipamento social pode colaborar na identificação de situações coletivas.',
+    xp:10,info:10,eng:6
+  }
+};
+
+const evidence = {
+  reservatorio:['RESERVATÓRIO','O abastecimento de água precisa ser avaliado diante do relato de alteração de gosto e do agrupamento de casos.','Hipótese ambiental fortalecida.',12],
+  casos:['AGRUPAMENTO DE CASOS','Há relatos de diarreia em mais de uma criança e em diferentes pontos do bairro.','Evento coletivo identificado.',15],
+  residuos:['RESÍDUOS','O ponto de resíduos está próximo de áreas de circulação e do curso d’água.','Risco ambiental registrado.',10],
+  industria:['INDÚSTRIA','A atividade industrial é um ponto de atenção. É necessário investigar antes de atribuir causalidade.','Fonte potencial de exposição registrada.',10],
+  rio:['CURSO D’ÁGUA','O curso d’água conecta diferentes áreas do território e pode participar da investigação ambiental.','Eixo ambiental mapeado.',10],
+  notificacao:['NOTIFICAÇÃO','Os casos devem ser reconhecidos e comunicados conforme os fluxos de vigilância aplicáveis.','Vigilância acionada no plano.',13]
+};
+
+const decisionData = {
+  ubs:{
+    title:'NA UBS: POR ONDE COMEÇAR?',
+    text:'A equipe precisa organizar a resposta diante do agrupamento de casos.',
+    options:[
+      ['Organizar avaliação dos casos e definir fluxo de cuidado',true,'Atenção aos casos sem perder a visão coletiva.'],
+      ['Esperar vários dias antes de fazer qualquer ação',false,'A demora pode atrasar o reconhecimento do evento.']
+    ]
+  },
+  acs:{
+    title:'PAPEL DA ACS',
+    text:'Qual ação aproveita melhor o vínculo com as famílias?',
+    options:[
+      ['Realizar busca ativa e orientar as famílias',true,'A busca ativa aproxima a equipe das pessoas e produz informação territorial.'],
+      ['Atuar somente dentro da UBS',false,'A territorialização exige aproximação com a comunidade.']
+    ]
+  },
+  agua:{
+    title:'INVESTIGAÇÃO DA ÁGUA',
+    text:'O relato sobre a água deve ser tratado como:',
+    options:[
+      ['Uma hipótese que precisa ser investigada',true,'Relato é pista. Investigação é necessária antes de concluir causalidade.'],
+      ['Prova definitiva da causa do surto',false,'Uma associação suspeita não é confirmação causal.']
+    ]
+  },
+  vigilancia:{
+    title:'VIGILÂNCIA',
+    text:'Diante de um possível evento coletivo, a equipe deve:',
+    options:[
+      ['Articular com a Vigilância e seguir o fluxo de notificação/investigação',true,'APS e Vigilância atuam de forma articulada.'],
+      ['Resolver tudo isoladamente na UBS',false,'Eventos coletivos podem exigir articulação intersetorial e com a Vigilância.']
+    ]
+  }
+};
+
+
+const phaseQuizzes = {
+  1:[
+    {q:'O que melhor define o território na APS?',o:['Apenas a área geográfica da UBS','Um espaço vivo, com pessoas, relações, modos de vida e necessidades','Somente os domicílios cadastrados'],a:1,e:'O território é espaço vivido e produzido pelas relações sociais, ambientais e de saúde.'},
+    {q:'Por que identificar equipamentos como escola e praça?',o:['Porque ajudam a compreender a dinâmica e os recursos do território','Porque substituem o cadastro da população','Porque são unidades de atendimento médico'],a:0,e:'Equipamentos sociais ajudam a compreender circulação, vínculos e recursos existentes no território.'},
+    {q:'Ao encontrar alteração no gosto da água, qual é a atitude inicial?',o:['Concluir imediatamente que ela causou os casos','Ignorar o relato por não ser um diagnóstico','Registrar a informação e investigar a possibilidade'],a:2,e:'Um relato é uma pista. Ele deve ser registrado e investigado antes de se estabelecer causalidade.'}
+  ],
+  2:[
+    {q:'Qual é uma função importante da ACS na territorialização?',o:['Fazer apenas tarefas administrativas na UBS','Aproximar equipe, famílias e território por meio do vínculo e da busca ativa','Substituir todos os profissionais da equipe'],a:1,e:'A ACS tem papel fundamental na aproximação com famílias, busca ativa e produção de informação territorial.'},
+    {q:'O relato de Dona Maria sobre água e diarreia representa:',o:['Uma informação territorial que merece investigação','Uma prova definitiva da causa do surto','Uma informação sem utilidade para a equipe'],a:0,e:'Relatos comunitários são fontes importantes de informação e podem orientar a investigação.'},
+    {q:'Por que ouvir diferentes moradores?',o:['Para confirmar uma hipótese previamente escolhida','Para reunir diferentes perspectivas e identificar padrões no território','Para evitar a participação da equipe de saúde'],a:1,e:'Escutar diferentes pessoas ajuda a identificar padrões, necessidades e situações que não aparecem em um único ponto.'}
+  ],
+  3:[
+    {q:'O que caracteriza melhor a investigação de um possível risco ambiental?',o:['Atribuir imediatamente a causa a um único fator','Reunir evidências e verificar hipóteses','Escolher a explicação mais fácil'],a:1,e:'Investigação exige reunir evidências e testar hipóteses, evitando conclusões precipitadas.'},
+    {q:'Por que investigar o agrupamento de casos?',o:['Porque vários casos relacionados podem indicar um evento coletivo','Porque todo caso de diarreia é obrigatoriamente um surto','Porque o número de casos não importa'],a:0,e:'Um agrupamento de casos pode indicar um evento coletivo e merece avaliação epidemiológica.'},
+    {q:'Qual ponto pode exigir articulação com a Vigilância?',o:['Somente a praça','Um possível evento coletivo com suspeita de risco ambiental','Nenhum, pois a UBS deve agir isoladamente'],a:1,e:'A Vigilância deve ser articulada diante de situações que demandem investigação e resposta coletiva.'}
+  ],
+  4:[
+    {q:'Qual princípio deve orientar a resposta diante de necessidades diferentes no território?',o:['Equidade','Uniformidade absoluta','Exclusão dos grupos mais vulneráveis'],a:0,e:'Equidade significa reconhecer necessidades diferentes e organizar respostas proporcionais a essas necessidades.'},
+    {q:'Como APS e Vigilância devem atuar diante de um possível evento coletivo?',o:['De forma isolada','De forma articulada, compartilhando informações e ações','Somente depois que o evento terminar'],a:1,e:'A articulação entre APS e Vigilância fortalece reconhecimento, investigação e resposta.'},
+    {q:'Qual conduta é mais coerente com o território-processo?',o:['Agir somente dentro da UBS','Usar informações do território para planejar ações de cuidado e prevenção','Ignorar determinantes sociais'],a:1,e:'Territorialização transforma conhecimento do território em planejamento e cuidado contextualizado.'}
+  ]
+};
+
+const bossSequence = ['acs','agua','vigilancia','cuidado'];
+const bossNames = {
+  acs:'MOBILIZAR ACS',
+  agua:'INVESTIGAR ÁGUA',
+  vigilancia:'ACIONAR VIGILÂNCIA',
+  cuidado:'CUIDAR DOS CASOS'
+};
+
+function $(id){return document.getElementById(id)}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function newGame(){
+  state={
+    phase:1,xp:0,hp:100,info:0,eng:50,time:100,zoom:1,
+    explored:new Set(),talked:new Set(),evidence:new Set(),
+    decisions:new Set(),quizPhase:0,quizIndex:0,quizScore:0,bossIndex:0,bossDefeated:false
+  };
+  localStorage.removeItem(SAVE_KEY);
+  showScreen('intro');
+}
+
+function beginMission(){
+  showScreen('worldScreen');
+  renderPhase();
+  toast('A missão começou! Clique nos elementos do mapa.');
+}
+
+function continueGame(){
+  const raw=localStorage.getItem(SAVE_KEY);
+  if(!raw){ toastMenu('Nenhum jogo salvo encontrado.'); return; }
+  try{
+    const d=JSON.parse(raw);
+    state={...state,...d};
+    state.explored=new Set(d.explored||[]);
+    state.talked=new Set(d.talked||[]);
+    state.evidence=new Set(d.evidence||[]);
+    state.decisions=new Set(d.decisions||[]);
+    showScreen('worldScreen');
+    renderPhase();
+    toast('Jogo carregado.');
+  }catch(e){toastMenu('Não foi possível carregar o jogo.');}
+}
+
+function saveGame(){
+  const d={...state,
+    explored:[...state.explored],
+    talked:[...state.talked],
+    evidence:[...state.evidence],
+    decisions:[...state.decisions],
+    quizPhase:state.quizPhase, quizIndex:state.quizIndex, quizScore:state.quizScore
+  };
+  localStorage.setItem(SAVE_KEY,JSON.stringify(d));
+  toast('💾 Progresso salvo.');
+}
+
+function howToPlay(){
+  alert(
+`COMO JOGAR — SUS QUEST
+
+• O MAPA permanece na tela durante toda a missão.
+• Clique nos locais e personagens destacados.
+• FASE 1: explore pelo menos 5 pontos.
+• FASE 2: converse com os 4 personagens.
+• FASE 3: encontre as 6 evidências.
+• FASE 4: tome decisões com base nas evidências.
+• FASE 5: execute a sequência correta no surto.
+• Use + e − para aproximar ou afastar o mapa.
+• 💾 salva o progresso no navegador.
+
+Objetivo: aprender territorialização enquanto joga.`
+  );
+}
+
+function renderPhase(){
+  const p=phaseData[state.phase];
+  $('phaseTitle').textContent=p.title;
+  $('missionText').textContent=p.mission;
+  $('objectiveText').textContent=p.objective;
+
+  document.querySelectorAll('.hotspot').forEach(h=>{
+    h.style.display='none';
+    h.classList.remove('done','locked');
+  });
+
+  if(state.phase===1) renderPhase1();
+  if(state.phase===2) renderPhase2();
+  if(state.phase===3) renderPhase3();
+  if(state.phase===4) renderPhase4();
+  if(state.phase===5) renderPhase5();
+  if(state.phase===6) renderVictory();
+
+  updateHUD();
+}
+
+function showOnly(selector){
+  document.querySelectorAll(selector).forEach(h=>h.style.display='block');
+}
+
+function markDone(selector, set){
+  document.querySelectorAll(selector).forEach(h=>{
+    const key=h.getAttribute('data-key');
+    if(set.has(key)){
+      h.classList.add('done');
+      h.innerHTML=h.innerHTML+'<br><span class="check">✓</span>';
+    }
+  });
+}
+
+function renderPhase1(){
+  showOnly('[data-phase="1"]');
+  const total=state.explored.size;
+  $('progress').textContent=`${Math.min(total,5)} / 5`;
+  document.querySelectorAll('[data-phase="1"]').forEach(h=>{
+    const key=buttonKey(h);
+    if(state.explored.has(key)) h.classList.add('done');
+  });
+}
+
+function renderPhase2(){
+  // A comunidade agora vira parte do mapa.
+  showOnly('[data-phase="2"]');
+  $('progress').textContent=`${state.talked.size} / 4`;
+  document.querySelectorAll('[data-phase="2"]').forEach(h=>{
+    const key=buttonKey(h);
+    if(state.talked.has(key)) h.classList.add('done');
+  });
+}
+
+function renderPhase3(){
+  showOnly('[data-phase="3"]');
+  $('progress').textContent=`${state.evidence.size} / 6`;
+  document.querySelectorAll('[data-phase="3"]').forEach(h=>{
+    const key=h.textContent.includes('RESERVATÓRIO')?'reservatorio':
+      h.textContent.includes('CASOS')?'casos':
+      h.textContent.includes('RESÍDUOS')?'residuos':
+      h.textContent.includes('INDÚSTRIA')?'industria':
+      h.textContent.includes('CURSO')?'rio':'notificacao';
+    h.dataset.key=key;
+    if(state.evidence.has(key)) h.classList.add('done');
+  });
+}
+
+function renderPhase4(){
+  showOnly('[data-phase="4"]');
+  $('progress').textContent=`${state.decisions.size} / 4`;
+  document.querySelectorAll('[data-phase="4"]').forEach(h=>{
+    const key=h.textContent.includes('PLANO')?'ubs':
+      h.textContent.includes('ACS')?'acs':
+      h.textContent.includes('ÁGUA')?'agua':'vigilancia';
+    h.dataset.key=key;
+    if(state.decisions.has(key)) h.classList.add('done');
+  });
+}
+
+function renderPhase5(){
+  showOnly('[data-phase="5"]');
+  $('progress').textContent=`${state.bossIndex} / 4`;
+  $('objectiveText').textContent=
+    `Ação ${state.bossIndex+1}/4: ${bossNames[bossSequence[state.bossIndex]]||'CONCLUÍDA'}`;
+}
+
+function buttonKey(h){
+  const t=h.textContent;
+  if(t.includes('UBS'))return 'ubs';
+  if(t.includes('ESCOLA'))return 'escola';
+  if(t.includes('COMUNIDADE'))return 'comunidade';
+  if(t.includes('PRAÇA'))return 'praca';
+  if(t.includes('ÁGUA'))return 'agua';
+  if(t.includes('LIXO'))return 'lixo';
+  if(t.includes('INDÚSTRIA'))return 'industria';
+  if(t.includes('ÁREA VERDE'))return 'mata';
+  return '';
+}
+
+
+function startPhaseQuiz(phase){
+  state.quizPhase=phase;
+  state.quizIndex=0;
+  state.quizScore=0;
+  showQuizQuestion();
+}
+
+function showQuizQuestion(){
+  const list=phaseQuizzes[state.quizPhase];
+  const q=list[state.quizIndex];
+  const number=state.quizIndex+1;
+  openModal(
+    `🧠 TESTE DA FASE ${state.quizPhase} — ${number}/3`,
+    `<b>${q.q}</b><br><br><span style="font-size:21px">Responda com base no que você descobriu nesta fase.</span>`,
+    q.o.map((option,i)=>[option,()=>answerQuiz(i)])
+  );
+}
+
+function answerQuiz(answer){
+  const list=phaseQuizzes[state.quizPhase];
+  const q=list[state.quizIndex];
+  const correct=answer===q.a;
+  if(correct){
+    state.quizScore++;
+    state.xp+=12;
+    state.info+=3;
+    closeModal();
+    toast('✓ Resposta correta! +12 XP.');
+  }else{
+    state.xp=Math.max(0,state.xp-5);
+    state.time=Math.max(0,state.time-5);
+    closeModal();
+    toast('✗ Não foi dessa vez. -5 XP / -5 tempo. Reveja a informação e tente novamente.');
+  }
+  if(correct){
+    state.quizIndex++;
+    if(state.quizIndex>=list.length){
+      setTimeout(()=>finishPhaseQuiz(),450);
+    }else{
+      setTimeout(()=>showQuizQuestion(),450);
+    }
+  }else{
+    setTimeout(()=>showQuizQuestion(),450);
+  }
+  updateHUD();
+}
+
+function finishPhaseQuiz(){
+  const phase=state.quizPhase;
+  const score=state.quizScore;
+  const messages={
+    1:'Você demonstrou que entendeu os elementos básicos do território e reconheceu o território como espaço vivo.',
+    2:'Você transformou as falas da comunidade em informações úteis para compreender o território.',
+    3:'Você relacionou os achados do mapa, os casos e os riscos para construir uma investigação.',
+    4:'Você aplicou princípios da APS, equidade, território-processo e articulação com a Vigilância.'
+  };
+  completePhase(
+    `🎉 PARABÉNS! FASE ${phase} CONCLUÍDA!`,
+    `${messages[phase]}<br><br><b>🧠 QUIZ: ${score}/3 respostas corretas</b>`,
+    phase<4 ? 'Prepare-se para a próxima missão!' : 'O plano está pronto. Agora é hora de enfrentar o surto!',
+    advancePhase
+  );
+}
+
+function visit(key){
+  if(state.phase!==1)return;
+  if(state.explored.has(key)){
+    toast('Você já registrou esse ponto do território.');
+    return;
+  }
+  const d=locations[key];
+  if(!d)return;
+  state.explored.add(key);
+  state.xp+=d[4];
+  state.info+=d[3]==='info'?d[5]:0;
+  state.eng+=d[3]==='eng'?d[5]:0;
+  state.time=Math.max(0,state.time-4);
+  openModal(d[0],d[1]+`<br><br><b>REGISTRO:</b> ${d[2]}`,
+    [['CONTINUAR EXPLORANDO',closeModal]]);
+  renderPhase();
+  if(state.explored.size>=5){
+    setTimeout(()=>startPhaseQuiz(1),500);
+  }
+}
+
+function talk(key){
+  if(state.phase!==2)return;
+  if(state.talked.has(key)){
+    toast('Você já conversou com este personagem.');
+    return;
+  }
+  const n=npcs[key];
+  state.talked.add(key);
+  state.xp+=n.xp; state.info+=n.info; state.eng+=n.eng;
+  state.time=Math.max(0,state.time-5);
+  openModal(n.title,n.text+`<br><br><b>PISTA:</b> ${n.extra}`,
+    [['REGISTRAR INFORMAÇÃO',closeModal]]);
+  renderPhase();
+  if(state.talked.size>=4)setTimeout(()=>startPhaseQuiz(2),600);
+}
+
+function investigate(key){
+  if(state.phase!==3)return;
+  if(state.evidence.has(key)){
+    toast('Evidência já registrada.');
+    return;
+  }
+  const e=evidence[key];
+  state.evidence.add(key);
+  state.info+=e[3];
+  state.xp+=10;
+  state.time=Math.max(0,state.time-5);
+  openModal(e[0],e[1]+`<br><br><b>ACHADO:</b> ${e[2]}`,
+    [['ADICIONAR AO DOSSIÊ',closeModal]]);
+  renderPhase();
+  if(state.evidence.size>=6)setTimeout(()=>startPhaseQuiz(3),600);
+}
+
+function decision(key){
+  if(state.phase!==4)return;
+  if(state.decisions.has(key)){
+    toast('Decisão já registrada.');
+    return;
+  }
+  const d=decisionData[key];
+  openModal(d.title,d.text,
+    d.options.map(o=>[o[0],()=>answerDecision(key,o[1],o[2])])
+  );
+}
+
+function answerDecision(key,correct,feedback){
+  closeModal();
+  if(correct){
+    state.decisions.add(key);
+    state.xp+=18;
+    state.eng+=5;
+    state.info+=5;
+    state.time=Math.max(0,state.time-6);
+    toast('✓ Decisão coerente com a situação. '+feedback);
+    renderPhase();
+    if(state.decisions.size>=4)setTimeout(()=>startPhaseQuiz(4),700);
+  }else{
+    state.xp=Math.max(0,state.xp-8);
+    state.eng=Math.max(0,state.eng-5);
+    state.time=Math.max(0,state.time-10);
+    toast('✗ '+feedback+' Você perdeu XP e tempo.');
+    updateHUD();
+  }
+}
+
+function bossAction(key){
+  if(state.phase!==5)return;
+  const expected=bossSequence[state.bossIndex];
+  if(key===expected){
+    state.bossIndex++;
+    state.xp+=20;
+    state.info+=8;
+    state.eng+=4;
+    state.time=Math.max(0,state.time-7);
+    toast(`✓ ${bossNames[key]}: ação realizada.`);
+    if(state.bossIndex>=bossSequence.length){
+      state.bossDefeated=true;
+      setTimeout(()=>completePhase(
+        '🎉 PARABÉNS! FASE 5 CONCLUÍDA!',
+        'Você executou a sequência de resposta e protegeu a comunidade diante do surto.',
+        'A missão está quase completa. Vamos conferir sua vitória!',
+        advancePhase
+      ),800);
+    }else{
+      $('objectiveText').textContent=`Próxima ação: ${bossNames[bossSequence[state.bossIndex]]}`;
+    }
+    updateHUD();
+    renderPhase();
+  }else{
+    state.hp=Math.max(0,state.hp-10);
+    state.eng=Math.max(0,state.eng-5);
+    state.time=Math.max(0,state.time-10);
+    state.xp=Math.max(0,state.xp-10);
+    toast(`✗ A sequência pede outra ação primeiro. -10 comunidade / -10 XP.`);
+    updateHUD();
+    if(state.hp<=0 || state.time<=0) gameOver();
+  }
+}
+
+function completePhase(title, text, nextText, callback){
+  openModal(
+    title,
+    `${text}<br><br><b>${nextText}</b>`,
+    [['CONTINUAR →',()=>{
+      closeModal();
+      callback();
+    }]]
+  );
+}
+
+function advancePhase(){
+  if(state.phase<5){
+    state.phase++;
+    renderPhase();
+    toast(`NOVA FASE! ${phaseData[state.phase].title}`);
+    saveGame();
+  }else if(state.phase===5 && state.bossDefeated){
+    state.phase=6;
+    renderPhase();
+    saveGame();
+  }
+}
+
+function renderVictory(){
+  document.querySelectorAll('.hotspot').forEach(h=>h.style.display='none');
+  $('progress').textContent='✓';
+  $('phaseTitle').textContent='🏆 JOGO CONCLUÍDO';
+  $('missionText').textContent='TERRITÓRIO PROTEGIDO!';
+  $('objectiveText').textContent='Parabéns! Você venceu o SUS QUEST.';
+  openModal(
+    '🏆 PARABÉNS! VOCÊ VENCEU O JOGO!',
+    `A missão <b>SUS QUEST — TERRITÓRIO VIVO</b> foi concluída!<br><br>
+     Você conectou <b>território + comunidade + APS + Vigilância</b> para responder a um problema coletivo.<br><br>
+     <b>⭐ XP FINAL:</b> ${state.xp}<br>
+     <b>🔎 INFORMAÇÃO:</b> ${state.info}<br>
+     <b>🤝 VÍNCULO:</b> ${state.eng}<br>
+     <b>❤️ COMUNIDADE:</b> ${state.hp}<br><br>
+     <i>Conhecer. Escutar. Investigar. Planejar. Cuidar.</i><br><br>
+     <b>MISSÃO CUMPRIDA! 🎮</b>`,
+    [['JOGAR NOVAMENTE',()=>{closeModal();newGame();}]]
+  );
+}
+
+function gameOver(){
+  openModal(
+    '💥 MISSÃO INTERROMPIDA',
+    'Os recursos da equipe chegaram ao limite. Recomece e tente construir a resposta com mais informações e vínculo.',
+    [['RECOMEÇAR',()=>{closeModal();newGame();}]]
+  );
+}
+
+function openModal(title,text,actions=[]){
+  $('modalTitle').innerHTML=title;
+  $('modalText').innerHTML=text;
+  $('modalActions').innerHTML='';
+  actions.forEach(a=>{
+    const b=document.createElement('button');
+    b.className='action';
+    b.textContent=a[0];
+    b.onclick=a[1];
+    $('modalActions').appendChild(b);
+  });
+  $('modal').classList.add('show');
+}
+function closeModal(){$('modal').classList.remove('show')}
+
+function toast(text){
+  $('message').innerHTML=text;
+  $('message').classList.add('show');
+  clearTimeout(window.toastTimer);
+  window.toastTimer=setTimeout(()=>$('message').classList.remove('show'),3000);
+}
+function toastMenu(text){alert(text)}
+
+function updateHUD(){
+  $('hp').textContent=state.hp;
+  $('info').textContent=state.info;
+  $('eng').textContent=state.eng;
+  $('xp').textContent=state.xp;
+  $('time').textContent=state.time;
+}
+
+function zoom(delta){
+  state.zoom=Math.max(.85,Math.min(1.55,state.zoom+delta));
+  $('world').style.transform=`scale(${state.zoom})`;
+}
+function resetZoom(){
+  state.zoom=1;
+  $('world').style.transform='scale(1)';
+}
+
+/* teclado */
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape')closeModal();
+  if(e.key==='+')zoom(.1);
+  if(e.key==='-')zoom(-.1);
+});
+
+/* impede que o mapa seja arrastado como imagem */
+$('mapImage').ondragstart=()=>false;
+</script>
+</body>
+</html>
